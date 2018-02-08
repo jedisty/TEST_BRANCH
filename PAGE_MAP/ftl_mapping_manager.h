@@ -16,14 +16,19 @@ extern unsigned int* block_index;
 void INIT_MAPPING_TABLE(void);
 void TERM_MAPPING_TABLE(void);
 
-int32_t GET_MAPPING_INFO(int32_t lpn);
-int GET_NEW_PAGE(int mode, int mapping_index, int32_t* ppn);
+int32_t GET_MAPPING_INFO(int32_t lbn);
+int GET_NEW_BLOCK(int mode, int mapping_index, int32_t* pbn);
 
-int UPDATE_OLD_PAGE_MAPPING(int32_t lpn);
-int UPDATE_NEW_PAGE_MAPPING(int32_t lpn, int32_t ppn);
+int UPDATE_OLD_BLOCK_MAPPING(int32_t lbn);
+int UPDATE_NEW_BLOCK_MAPPING(int32_t lbn, int32_t pbn);
 
-unsigned int CALC_FLASH(int32_t ppn);
-unsigned int CALC_BLOCK(int32_t ppn);
-unsigned int CALC_PAGE(int32_t ppn);
+/* Functions for Replacement Block */
+int32_t GET_VALID_MAPPING(int32_t lbn, int32_t block_offset);
+int32_t GET_AVAILABLE_PBN_FROM_RP_TABLE(int32_t pbn, int32_t block_offset);
+void INSERT_NEW_RP_BLOCK(int32_t pbn, int32_t new_rp_pbn);
+
+unsigned int CALC_FLASH(int32_t pbn);
+unsigned int CALC_BLOCK(int32_t pbn);
+unsigned int CALC_PAGE(int32_t pbn);
 
 #endif

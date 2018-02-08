@@ -8,14 +8,16 @@
 
 extern int32_t* inverse_mapping_table;
 extern void* block_state_table;
+extern void* empty_block_list;
 
 extern int64_t total_empty_block_nb;
-extern int64_t total_victim_block_nb;
-
-extern void* empty_block_list;
-extern void* victim_block_list;
-
 extern unsigned int empty_block_list_index;
+
+typedef struct rp_block_entry
+{
+	int32_t pbn;
+	struct rp_block_entry* next;
+}rp_block_entry;
 
 typedef struct block_state_entry
 {
@@ -24,6 +26,9 @@ typedef struct block_state_entry
 	unsigned int erase_count;
 	char* valid_array;
 
+	int rp_count;
+	int32_t rp_root_pbn;
+	rp_block_entry* rp_head;
 }block_state_entry;
 
 typedef struct empty_block_root
@@ -35,56 +40,31 @@ typedef struct empty_block_root
 
 typedef struct empty_block_entry
 {
-	unsigned int phy_flash_nb;
 	unsigned int phy_block_nb;
-	unsigned int curr_phy_page_nb;
 	struct empty_block_entry* next;
 
 }empty_block_entry;
 
-typedef struct victim_block_root
-{
-	struct victim_block_entry* head;
-	struct victim_block_entry* tail;
-	unsigned int victim_block_nb;
-}victim_block_root;
-
-typedef struct victim_block_entry
-{
-	unsigned int phy_flash_nb;
-	unsigned int phy_block_nb;
-	struct victim_block_entry* prev;
-	struct victim_block_entry* next;
-}victim_block_entry;
-
-extern victim_block_entry* victim_block_list_head;
-extern victim_block_entry* victim_block_list_tail;
-
 void INIT_INVERSE_MAPPING_TABLE(void);
 void INIT_BLOCK_STATE_TABLE(void);
 void INIT_EMPTY_BLOCK_LIST(void);
-void INIT_VICTIM_BLOCK_LIST(void);
 void INIT_VALID_ARRAY(void);
 
 void TERM_INVERSE_MAPPING_TABLE(void);
 void TERM_BLOCK_STATE_TABLE(void);
 void TERM_EMPTY_BLOCK_LIST(void);
-void TERM_VICTIM_BLOCK_LIST(void);
 void TERM_VALID_ARRAY(void);
 
 empty_block_entry* GET_EMPTY_BLOCK(int mode, int mapping_index);
-int INSERT_EMPTY_BLOCK(unsigned int phy_flash_nb, unsigned int phy_block_nb);
+int INSERT_EMPTY_BLOCK(int32_t new_empty_pbn);
 
-int INSERT_VICTIM_BLOCK(empty_block_entry* full_block);
-int EJECT_VICTIM_BLOCK(victim_block_entry* victim_block);
+char GET_PAGE_STATE(int32_t pbn, int32_t block_offset);
+block_state_entry* GET_BLOCK_STATE_ENTRY(int32_t pbn);
 
-block_state_entry* GET_BLOCK_STATE_ENTRY(unsigned int phy_flash_nb, unsigned int phy_block_nb);
-
-int32_t GET_INVERSE_MAPPING_INFO(int32_t lpn);
-int UPDATE_INVERSE_MAPPING(int32_t ppn, int32_t lpn);
-int UPDATE_BLOCK_STATE(unsigned int phy_flash_nb, unsigned int phy_block_nb, int type);
-int UPDATE_BLOCK_STATE_ENTRY(unsigned int phy_flash_nb, unsigned int phy_block_nb, unsigned int phy_page_nb, int valid);
-
-void PRINT_VALID_ARRAY(unsigned int phy_flash_nb, unsigned int phy_block_nb);
+int32_t GET_INVERSE_MAPPING_INFO(int32_t lbn);
+int UPDATE_INVERSE_MAPPING(int32_t pbn, int32_t lbn);
+int UPDATE_BLOCK_STATE(int32_t pbn, int block_type);
+int UPDATE_BLOCK_STATE_ENTRY(int32_t pbn, int32_t block_offset, int valid);
+void PRINT_VALID_ARRAY(int32_t pbn);
 
 #endif

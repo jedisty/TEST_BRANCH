@@ -6,5 +6,5 @@
 #ifndef _FTL_TYPE_H_
 #define _FTL_TYPE_H_
 
-#define PAGE_MAP
+#define BLOCK_MAP
 #endif

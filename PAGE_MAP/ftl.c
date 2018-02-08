@@ -1,46 +1,16 @@
-// File: ftl.c
-// Data: 2014. 12. 03.
-// Author: Jinsoo Yoo (jedisty@hanyang.ac.kr)
-// Copyright(c)2014
+// Copyright(c)2014 
+//
 // Hanyang University, Seoul, Korea
-// Embedded Software Systems Laboratory. All right reserved
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+// Embedded Software Systems Lab. All right reserved
 
 #include "common.h"
+
 #ifndef VSSIM_BENCH
 #include "qemu-kvm.h"
 #endif
 
-#ifdef DEBUG_MODE1
-FILE* fp_dbg1_r;
-FILE* fp_dbg1_w;
-#endif
 #ifdef DEBUG_MODE9
 FILE* fp_dbg9_gc;
-#endif
-#ifdef FTL_GET_WRITE_WORKLOAD
-FILE* fp_write_workload;
-#endif
-#ifdef FTL_IO_LATENCY
-FILE* fp_ftl_w;
-FILE* fp_ftl_r;
 #endif
 
 int g_init = 0;
@@ -55,38 +25,23 @@ void FTL_INIT(void)
 
 		INIT_MAPPING_TABLE();
 		INIT_INVERSE_MAPPING_TABLE();
+
 		INIT_BLOCK_STATE_TABLE();
 		INIT_VALID_ARRAY();
 		INIT_EMPTY_BLOCK_LIST();
-		INIT_VICTIM_BLOCK_LIST();
-
 		INIT_PERF_CHECKER();
-		
+
 #ifdef FTL_MAP_CACHE
 		INIT_CACHE();
 #endif
 #ifdef FIRM_IO_BUFFER
-		INIT_FIRM_IO_BUFFER();
+		INIT_IO_BUFFER();
 #endif
 #ifdef MONITOR_ON
 		INIT_LOG_MANAGER();
 #endif
 		g_init = 1;
 
-#ifdef DEBUG_MODE1
-		fp_dbg1_r = fopen("./data/p_dbg1_r.txt","a");
-		fp_dbg1_w = fopen("./data/p_dbg1_w.txt","a");
-#endif
-#ifdef DEBUG_MODE9
-		fp_dbg9_gc = fopen("./data/p_dbg9_gc.txt","a");
-#endif
-#ifdef FTL_GET_WRITE_WORKLOAD
-		fp_write_workload = fopen("./data/p_write_workload.txt","a");
-#endif
-#ifdef FTL_IO_LATENCY
-		fp_ftl_w = fopen("./data/p_ftl_w.txt","a");
-		fp_ftl_r = fopen("./data/p_ftl_r.txt","a");
-#endif
 #ifdef VSSIM_BENCH_MULTI_THREAD
 		SSD_MT_IO_INIT();
 #else
@@ -101,90 +56,29 @@ void FTL_TERM(void)
 	printf("[%s] start\n", __FUNCTION__);
 
 #ifdef FIRM_IO_BUFFER
-	TERM_FIRM_IO_BUFFER();
+	TERM_IO_BUFFER();
 #endif
-
 	TERM_MAPPING_TABLE();
 	TERM_INVERSE_MAPPING_TABLE();
 	TERM_VALID_ARRAY();
 	TERM_BLOCK_STATE_TABLE();
 	TERM_EMPTY_BLOCK_LIST();
-	TERM_VICTIM_BLOCK_LIST();
-
 	TERM_PERF_CHECKER();
-
 #ifdef MONITOR_ON
-	TERM_LOG_MANAGER();
+	INIT_LOG_MANAGER();
 #endif
 
-#ifdef DEBUG_MODE1
-	fclose(fp_dbg1_r);
-	fclose(fp_dbg1_w);
-#endif
-#ifdef DEBUG_MODE9
-	fclose(fp_dbg9_gc);
-#endif
-#ifdef FTL_IO_LATENCY
-	fclose(fp_ftl_w);
-	fclose(fp_ftl_r);
-#endif
 	printf("[%s] complete\n", __FUNCTION__);
 }
 
 void FTL_READ(int32_t sector_nb, unsigned int length)
 {
-	int ret;
-
-#ifdef GET_FTL_WORKLOAD
-	FILE* fp_workload = fopen("./data/workload_ftl.txt","a");
-	struct timeval tv;
-	struct tm *lt;
-	double curr_time;
-	gettimeofday(&tv, 0);
-	lt = localtime(&(tv.tv_sec));
-	curr_time = lt->tm_hour*3600 + lt->tm_min*60 + lt->tm_sec + (double)tv.tv_usec/(double)1000000;
-	//fprintf(fp_workload,"%lf %d %ld %u %x\n",curr_time, 0, sector_nb, length, 1);
-	fprintf(fp_workload,"%lf %d %u %x\n",curr_time, sector_nb, length, 1);
-	fclose(fp_workload);
-#endif
-#ifdef FTL_IO_LATENCY
-	int64_t start_ftl_r, end_ftl_r;
-	start_ftl_r = get_usec();
-#endif
-	ret = _FTL_READ(sector_nb, length);
-#ifdef FTL_IO_LATENCY
-	end_ftl_r = get_usec();
-	if(length >= 128)
-		fprintf(fp_ftl_r,"%ld\t%u\n", end_ftl_r - start_ftl_r, length);
-#endif
+	_FTL_READ(sector_nb, length);
 }
 
 void FTL_WRITE(int32_t sector_nb, unsigned int length)
 {
-	int ret;
-
-#ifdef GET_FTL_WORKLOAD
-	FILE* fp_workload = fopen("./data/workload_ftl.txt","a");
-	struct timeval tv;
-	struct tm *lt;
-	double curr_time;
-	gettimeofday(&tv, 0);
-	lt = localtime(&(tv.tv_sec));
-	curr_time = lt->tm_hour*3600 + lt->tm_min*60 + lt->tm_sec + (double)tv.tv_usec/(double)1000000;
-//	fprintf(fp_workload,"%lf %d %ld %u %x\n",curr_time, 0, sector_nb, length, 0);
-	fprintf(fp_workload,"%lf %d %u %x\n",curr_time, sector_nb, length, 0);
-	fclose(fp_workload);
-#endif
-#ifdef FTL_IO_LATENCY
-	int64_t start_ftl_w, end_ftl_w;
-	start_ftl_w = get_usec();
-#endif
-	ret = _FTL_WRITE(sector_nb, length);
-#ifdef FTL_IO_LATENCY
-	end_ftl_w = get_usec();
-	if(length >= 128)
-		fprintf(fp_ftl_w,"%ld\t%u\n", end_ftl_w - start_ftl_w, length);
-#endif
+	_FTL_WRITE(sector_nb, length);
 }
 
 int _FTL_READ(int32_t sector_nb, unsigned int length)
@@ -193,17 +87,17 @@ int _FTL_READ(int32_t sector_nb, unsigned int length)
 	printf("[%s] Start\n", __FUNCTION__);
 #endif
 
-#ifdef DEBUG_MODE1
-	int64_t start_dbg1, end_dbg1;
-#endif
 	if(sector_nb + length > SECTOR_NB){
-		printf("Error[%s] Exceed Sector number\n", __FUNCTION__); 
+		printf("ERROR[%s] Exceed Sector number\n", __FUNCTION__); 
 		return FAIL;	
 	}
 
-	int32_t lpn;
-	int32_t ppn;
+	int32_t lpn;	// Logical Page Number
+	int32_t lbn;	// Logical Block Number
+	int32_t pbn;	// Physical Block Number
 	int32_t lba = sector_nb;
+	int32_t block_offset;
+
 	unsigned int remain = length;
 	unsigned int left_skip = sector_nb % SECTORS_PER_PAGE;
 	unsigned int right_skip;
@@ -212,6 +106,8 @@ int _FTL_READ(int32_t sector_nb, unsigned int length)
 	unsigned int ret = FAIL;
 	int read_page_nb = 0;
 	int io_page_nb;
+
+	char page_state; // Valid, Invalid, Empty
 
 #ifdef FIRM_IO_BUFFER
 	INCREASE_RB_FTL_POINTER(length);
@@ -227,10 +123,13 @@ int _FTL_READ(int32_t sector_nb, unsigned int length)
 		}
 		read_sects = SECTORS_PER_PAGE - left_skip - right_skip;
 
+		/* Calculate address, Get mapping address */
 		lpn = lba / (int32_t)SECTORS_PER_PAGE;
-		ppn = GET_MAPPING_INFO(lpn);
+		lbn = lpn / PAGE_NB;
+		block_offset = lpn % (int32_t)PAGE_NB;
+		pbn = GET_VALID_MAPPING(lbn, block_offset);
 
-		if(ppn == -1){
+		if(pbn == -1){
 #ifdef FIRM_IO_BUFFER
 			INCREASE_RB_LIMIT_POINTER();
 #endif
@@ -248,12 +147,7 @@ int _FTL_READ(int32_t sector_nb, unsigned int length)
 	lba = sector_nb;
 	left_skip = sector_nb % SECTORS_PER_PAGE;
 
-	nand_io_info* n_io_info = NULL;
-
 	while(remain > 0){
-#ifdef DEBUG_MODE1
-		start_dbg1 = get_usec();
-#endif
 
 		if(remain > SECTORS_PER_PAGE - left_skip){
 			right_skip = 0;
@@ -263,31 +157,24 @@ int _FTL_READ(int32_t sector_nb, unsigned int length)
 		}
 		read_sects = SECTORS_PER_PAGE - left_skip - right_skip;
 
+		/* Calculate address, Get mapping address */
 		lpn = lba / (int32_t)SECTORS_PER_PAGE;
+		lbn = lpn / PAGE_NB;
+		block_offset = lpn % (int32_t)PAGE_NB;
+		pbn = GET_VALID_MAPPING(lbn, block_offset);
 
-#ifdef FTL_MAP_CACHE
-		ppn = CACHE_GET_PPN(lpn);
-#else
-		ppn = GET_MAPPING_INFO(lpn);
-#endif
-
-		if(ppn == -1){
-#ifdef FTL_DEBUG
+		if(pbn == -1){
 			printf("ERROR[%s] No Mapping info\n", __FUNCTION__);
-#endif
 		}
 
-		/* Read data from NAND page */
-                n_io_info = CREATE_NAND_IO_INFO(read_page_nb, READ, io_page_nb, io_request_seq_nb);
-
-		ret = SSD_PAGE_READ(CALC_FLASH(ppn), CALC_BLOCK(ppn), CALC_PAGE(ppn), n_io_info);
+		ret = SSD_PAGE_READ(CALC_FLASH(pbn), CALC_BLOCK(pbn), block_offset, read_page_nb, READ, io_page_nb);
 
 #ifdef FTL_DEBUG
 		if(ret == SUCCESS){
-			printf("\t read complete [%u]\n",ppn);
+			printf("\t read complete [%u]-[%d][%d]\n",lpn, pbn, block_offset);
 		}
 		else if(ret == FAIL){
-			printf("ERROR[%s] %u page read fail \n",__FUNCTION__, ppn);
+			printf("ERROR[%s] [%u] page read fail \n",__FUNCTION__, lpn);
 		}
 #endif
 		read_page_nb++;
@@ -295,11 +182,6 @@ int _FTL_READ(int32_t sector_nb, unsigned int length)
 		lba += read_sects;
 		remain -= read_sects;
 		left_skip = 0;
-
-#ifdef DEBUG_MODE1
-		end_dbg1 = get_usec();
-		fprintf(fp_dbg1_r,"%ld\t%d\t%lf\n",end_dbg1-start_dbg1, read_sects, ssd_util);
-#endif
 	}
 
 	INCREASE_IO_REQUEST_SEQ_NB();
@@ -308,7 +190,11 @@ int _FTL_READ(int32_t sector_nb, unsigned int length)
 	INCREASE_RB_LIMIT_POINTER();
 #endif
 
-	UPDATE_LOG(LOG_READ_PAGE, read_page_nb);
+#ifdef MONITOR_ON
+	char szTemp[1024];
+	sprintf(szTemp, "READ PAGE %d ", length);
+	WRITE_LOG(szTemp);
+#endif
 
 #ifdef FTL_DEBUG
 	printf("[%s] Complete\n", __FUNCTION__);
@@ -320,16 +206,12 @@ int _FTL_READ(int32_t sector_nb, unsigned int length)
 int _FTL_WRITE(int32_t sector_nb, unsigned int length)
 {
 #ifdef FTL_DEBUG
-	printf("[%s] Start\n", __FUNCTION__);
+	printf("[%s] Start\n",__FUNCTION__);
+#endif
+#ifdef GC_ON
+	GC_CHECK();
 #endif
 
-#ifdef FTL_GET_WRITE_WORKLOAD
-	fprintf(fp_write_workload,"%d\t%u\n", sector_nb, length);
-#endif
-
-#ifdef DEBUG_MODE1
-	int64_t start_dbg1, end_dbg1;
-#endif
 	int io_page_nb;
 
 	if(sector_nb + length > SECTOR_NB){
@@ -341,9 +223,11 @@ int _FTL_WRITE(int32_t sector_nb, unsigned int length)
 	}
 
 	int32_t lba = sector_nb;
-	int32_t lpn;
-	int32_t new_ppn;
-	int32_t old_ppn;
+	int32_t lpn;	// Logical Page Number
+	int32_t lbn;	// Logical Block Number
+	int32_t new_pbn;	// New Physical Block Number
+	int32_t old_pbn;	// Old Physical Block Number
+	int32_t block_offset;
 
 	unsigned int remain = length;
 	unsigned int left_skip = sector_nb % SECTORS_PER_PAGE;
@@ -352,13 +236,10 @@ int _FTL_WRITE(int32_t sector_nb, unsigned int length)
 
 	unsigned int ret = FAIL;
 	int write_page_nb=0;
-	nand_io_info* n_io_info = NULL;
+	char page_state;
 
 	while(remain > 0){
 
-#ifdef DEBUG_MODE1
-		start_dbg1 = get_usec();
-#endif
 		if(remain > SECTORS_PER_PAGE - left_skip){
 			right_skip = 0;
 		}
@@ -371,64 +252,71 @@ int _FTL_WRITE(int32_t sector_nb, unsigned int length)
 #ifdef FIRM_IO_BUFFER
 		INCREASE_WB_FTL_POINTER(write_sects);
 #endif
-
-#ifdef WRITE_NOPARAL
-		ret = GET_NEW_PAGE(VICTIM_NOPARAL, empty_block_table_index, &new_ppn);
-#else
-		ret = GET_NEW_PAGE(VICTIM_OVERALL, EMPTY_TABLE_ENTRY_NB, &new_ppn);
-#endif
-		if(ret == FAIL){
-			printf("ERROR[%s] Get new page fail \n", __FUNCTION__);
-			return FAIL;
-		}
-
+		/* Calculate logical address and block offset */
 		lpn = lba / (int32_t)SECTORS_PER_PAGE;
-		old_ppn = GET_MAPPING_INFO(lpn);
+		lbn = lpn / PAGE_NB;
+		block_offset = lpn % (int32_t)PAGE_NB;
 
-		n_io_info = CREATE_NAND_IO_INFO(write_page_nb, WRITE, io_page_nb, io_request_seq_nb);
+		/* Get old physical block number */
+		old_pbn = GET_MAPPING_INFO(lbn);
 
-		if((left_skip || right_skip) && (old_ppn != -1)){
-			ret = SSD_PAGE_PARTIAL_WRITE(
-				CALC_FLASH(old_ppn), CALC_BLOCK(old_ppn), CALC_PAGE(old_ppn),
-				CALC_FLASH(new_ppn), CALC_BLOCK(new_ppn), CALC_PAGE(new_ppn),
-				n_io_info);
+		if(old_pbn == -1){
+			/* Write date to new page in new block */
+			ret = GET_NEW_BLOCK(VICTIM_OVERALL, EMPTY_TABLE_ENTRY_NB, &new_pbn);
+			if(ret == FAIL){
+				printf("ERROR[%s] Get new page fail \n",__FUNCTION__);
+				return FAIL;
+			}
+			else{
+				UPDATE_BLOCK_STATE(new_pbn, DATA_BLOCK);
+			}
+
+			/* SSD PAGE WRITE */	
+			ret = SSD_PAGE_WRITE(CALC_FLASH(new_pbn), CALC_BLOCK(new_pbn), block_offset, write_page_nb, WRITE, io_page_nb);
+
+			/* Update Mapping Information */
+			UPDATE_NEW_BLOCK_MAPPING(lbn, new_pbn);
+			UPDATE_BLOCK_STATE_ENTRY(new_pbn, block_offset, VALID);
 		}
 		else{
-			ret = SSD_PAGE_WRITE(CALC_FLASH(new_ppn), CALC_BLOCK(new_ppn), CALC_PAGE(new_ppn), n_io_info);
+			/* Get Newest Replacement block */
+			old_pbn = GET_AVAILABLE_PBN_FROM_RP_TABLE(old_pbn, block_offset);
+
+			/* Write data to new page in old block */
+			ret = SSD_PAGE_WRITE(CALC_FLASH(old_pbn), CALC_BLOCK(old_pbn), block_offset, write_page_nb, WRITE, io_page_nb);
+
+			/* Update Mapping Information */
+			UPDATE_BLOCK_STATE_ENTRY(old_pbn, block_offset, VALID);
 		}
 		
 		write_page_nb++;
 
-		UPDATE_OLD_PAGE_MAPPING(lpn);
-		UPDATE_NEW_PAGE_MAPPING(lpn, new_ppn);
-
 #ifdef FTL_DEBUG
                 if(ret == SUCCESS){
-                        printf("\twrite complete [%d, %d, %d]\n",CALC_FLASH(new_ppn), CALC_BLOCK(new_ppn),CALC_PAGE(new_ppn));
+                        printf("\twrite complete [%d, %d, %d]\n",CALC_FLASH(new_pbn), CALC_BLOCK(new_pbn), block_offset);
                 }
                 else if(ret == FAIL){
-                        printf("ERROR[%s] %d page write fail \n",__FUNCTION__, new_ppn);
+                        printf("ERROR[%s] [%d, %d] page write fail \n",__FUNCTION__, lbn, block_offset);
                 }
 #endif
 		lba += write_sects;
 		remain -= write_sects;
 		left_skip = 0;
-
-#ifdef DEBUG_MODE1
-		end_dbg1 = get_usec();
-		fprintf(fp_dbg1_w,"%ld\t%d\t%lf\n",end_dbg1-start_dbg1,write_sects,ssd_util);
-#endif
 	}
 
 	INCREASE_IO_REQUEST_SEQ_NB();
-#ifdef GC_ON
-	GC_CHECK(CALC_FLASH(new_ppn), CALC_BLOCK(new_ppn));
-#endif
 
 #ifdef FIRM_IO_BUFFER
 	INCREASE_WB_LIMIT_POINTER();
 #endif
-	UPDATE_LOG(LOG_WRITE_PAGE, write_page_nb);
+
+#ifdef MONITOR_ON
+	char szTemp[1024];
+	sprintf(szTemp, "WRITE PAGE %d ", length);
+	WRITE_LOG(szTemp);
+	sprintf(szTemp, "WB CORRECT %d", write_page_nb);
+	WRITE_LOG(szTemp);
+#endif
 
 #ifdef FTL_DEBUG
 	printf("[%s] End\n", __FUNCTION__);

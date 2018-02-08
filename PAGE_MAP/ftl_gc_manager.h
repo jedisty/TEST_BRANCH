@@ -8,9 +8,13 @@
 
 extern unsigned int gc_count;
 
-void GC_CHECK(unsigned int phy_flash_nb, unsigned int phy_block_nb);
+void GC_CHECK(void);
 
 int GARBAGE_COLLECTION(void);
-int SELECT_VICTIM_BLOCK(unsigned int* phy_flash_nb, unsigned int* phy_block_nb);
+int BM_GARBAGE_COLLECTION(int32_t victim_pbn);
+int32_t SELECT_VICTIM_BLOCK(void);
+
+int COPY_VALID_PAGES(int32_t old_pbn, int32_t new_pbn);
+int MERGE_RP_BLOCKS(int32_t old_pbn, int32_t new_pbn);
 
 #endif

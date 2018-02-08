@@ -1,4 +1,4 @@
-// Copyright(c)2014 
+// Copyright(c)2013 
 //
 // Hanyang University, Seoul, Korea
 // Embedded Software Systems Lab. All right reserved
@@ -14,14 +14,11 @@ unsigned int gc_count = 0;
 int fail_cnt = 0;
 extern double ssd_util;
 
-void GC_CHECK(unsigned int phy_flash_nb, unsigned int phy_block_nb)
+void GC_CHECK(void)
 {
-	int i, ret;
-	int plane_nb = phy_block_nb % PLANES_PER_FLASH;
-	int mapping_index = plane_nb * FLASH_NB + phy_flash_nb;
-	
-#ifdef GC_TRIGGER_OVERALL
-//	if(total_empty_block_nb < GC_THRESHOLD_BLOCK_NB)
+	int ret;
+	int i;
+
 	if(total_empty_block_nb <= FLASH_NB * PLANES_PER_FLASH)
 	{
 		for(i=0; i<GC_VICTIM_NB; i++){
@@ -31,18 +28,7 @@ void GC_CHECK(unsigned int phy_flash_nb, unsigned int phy_block_nb)
 			}
 		}
 	}
-#else
-	empty_block_root* curr_root_entry = (empty_block_root*)empty_block_list + mapping_index;
 
-	if(curr_root_entry->empty_block_nb < GC_THRESHOLD_BLOCK_NB_EACH){
-		for(i=0; i<GC_VICTIM_NB; i++){
-			ret = GARBAGE_COLLECTION();
-			if(ret == FAIL){
-				break;
-			}
-		}
-	}
-#endif
 }
 
 int GARBAGE_COLLECTION(void)
@@ -50,197 +36,317 @@ int GARBAGE_COLLECTION(void)
 #ifdef FTL_DEBUG
 	printf("[%s] Start\n", __FUNCTION__);
 #endif
-	int i;
-	int ret;
-	int32_t lpn;
-	int32_t old_ppn;
-	int32_t new_ppn;
 
-	unsigned int victim_phy_flash_nb = FLASH_NB;
-	unsigned int victim_phy_block_nb = 0;
+	int32_t victim_pbn = SELECT_VICTIM_BLOCK();
+	int copy_page_nb;
+	int32_t lbn;
 
-	char* valid_array;
-	int copy_page_nb = 0;
-
-	block_state_entry* b_s_entry;
-
-#ifdef DEBUG_MODE9
-	double old_util = ssd_util;
-#endif
-
-	ret = SELECT_VICTIM_BLOCK(&victim_phy_flash_nb, &victim_phy_block_nb);
-	if(ret == FAIL){
-#ifdef FTL_DEBUG
-		printf("[%s] There is no available victim block\n", __FUNCTION__);
-#endif
+	if(victim_pbn == -1){
+//		printf("[%s] There is no victim block \n", __FUNCTION__);
 		return FAIL;
 	}
 
-	int plane_nb = victim_phy_block_nb % PLANES_PER_FLASH;
-	int mapping_index = plane_nb * FLASH_NB + victim_phy_flash_nb;
-
-	nand_io_info* n_io_info = NULL;
-
-	b_s_entry = GET_BLOCK_STATE_ENTRY(victim_phy_flash_nb, victim_phy_block_nb);
-	valid_array = b_s_entry->valid_array;
-
-	for(i=0;i<PAGE_NB;i++){
-		if(valid_array[i]=='V'){
-#ifdef GC_VICTIM_OVERALL
-			ret = GET_NEW_PAGE(VICTIM_OVERALL, EMPTY_TABLE_ENTRY_NB, &new_ppn);
-#else
-			ret = GET_NEW_PAGE(VICTIM_INCHIP, mapping_index, &new_ppn);
-#endif
-			if(ret == FAIL){
-				printf("ERROR[%s] Get new page fail\n", __FUNCTION__);
-				return FAIL;
-			}
-
-			/* Read a Valid Page from the Victim NAND Block */
-			n_io_info = CREATE_NAND_IO_INFO(i, GC_READ, -1, io_request_seq_nb);
-			SSD_PAGE_READ(victim_phy_flash_nb, victim_phy_block_nb, i, n_io_info);
-
-			/* Write the Valid Page*/
-			n_io_info = CREATE_NAND_IO_INFO(i, GC_WRITE, -1, io_request_seq_nb);
-			SSD_PAGE_WRITE(CALC_FLASH(new_ppn), CALC_BLOCK(new_ppn), CALC_PAGE(new_ppn), n_io_info);
-
-			old_ppn = victim_phy_flash_nb*PAGES_PER_FLASH + victim_phy_block_nb*PAGE_NB + i;
-
-//			lpn = inverse_page_mapping_table[old_ppn];
-#ifdef FTL_MAP_CACHE
-			lpn = CACHE_GET_LPN(old_ppn);
-#else
-			lpn = GET_INVERSE_MAPPING_INFO(old_ppn);
-#endif
-			UPDATE_NEW_PAGE_MAPPING(lpn, new_ppn);
-
-			copy_page_nb++;
-		}
-	}
-
-	if(copy_page_nb != b_s_entry->valid_page_nb){
-		printf("ERROR[%s] The number of valid page is not correct\n", __FUNCTION__);
-		return FAIL;
-	}
-
-#ifdef FTL_DEBUG
-	printf("[%s] [f: %d, b: %d] Copy Page : %d, total victim : %ld, total empty : %ld \n",__FUNCTION__, victim_phy_flash_nb, victim_phy_block_nb,  copy_page_nb, total_victim_block_nb, total_empty_block_nb);
-#endif
-	SSD_BLOCK_ERASE(victim_phy_flash_nb, victim_phy_block_nb);
-	UPDATE_BLOCK_STATE(victim_phy_flash_nb, victim_phy_block_nb, EMPTY_BLOCK);
-	INSERT_EMPTY_BLOCK(victim_phy_flash_nb, victim_phy_block_nb);
+	copy_page_nb = BM_GARBAGE_COLLECTION(victim_pbn);
 
 #ifdef DEBUG_MODE9
-	fprintf(fp_dbg9_gc,"%d\t%d\t%d\t%d\t%lf\t%ld\t%ld\t%lf\n",gc_count, victim_phy_flash_nb, victim_phy_block_nb, copy_page_nb, ((double)copy_page_nb/PAGE_NB)*100, total_victim_block_nb, total_empty_block_nb, old_util - ssd_util); 	
+	fp_dbg9_gc = fopen("./data/p_dbg_9_gc.txt", "a");
+	fprintf(fp_dbg9_gc,"%d\t%d\t%d\t%lf\t%ld\n", gc_count, victim_pbn, copy_page_nb, ((double)copy_page_nb/PAGE_NB)*100, total_empty_block_nb); 	
+	fclose(fp_dbg9_gc);
 #endif
 	gc_count++;
 
-	UPDATE_LOG(LOG_GC_AMP, copy_page_nb);
+#ifdef MONITOR_ON
+	char szTemp[1024];
+	sprintf(szTemp, "GC ");
+	WRITE_LOG(szTemp);
+	sprintf(szTemp, "WB AMP %d", copy_page_nb);
+	WRITE_LOG(szTemp);
+#endif
+
 
 #ifdef FTL_DEBUG
-	printf("[%s] Complete\n",__FUNCTION__);
+	printf("[%s] Complete, total empty block: %ld, %d\n", __FUNCTION__, total_empty_block_nb, copy_page_nb);
 #endif
 	return SUCCESS;
 }
 
-/* Greedy Garbage Collection Algorithm */
-int SELECT_VICTIM_BLOCK(unsigned int* phy_flash_nb, unsigned int* phy_block_nb)
+int COUNT_INVALID_PAGES(block_state_entry* b_s_entry)
 {
-	int i, j;
-	int entry_nb = 0;
+	int count=0;
+	int i;
+	char* valid_array = b_s_entry->valid_array;
 
-	victim_block_root* curr_v_b_root;
-	victim_block_entry* curr_v_b_entry;
-	victim_block_entry* victim_block = NULL;
-
-	block_state_entry* b_s_entry;
-	int curr_valid_page_nb;
-
-	if(total_victim_block_nb == 0){
-		printf("ERROR[%s] There is no victim block\n", __FUNCTION__);
-		return FAIL;
+        for(i=0;i<PAGE_NB;i++){
+                if(valid_array[i] == 'I'){
+                        count++;
+                }
 	}
 
-	/* if GC_TRIGGER_OVERALL is defined, then */
-#ifdef GC_TRIGGER_OVERALL
-	curr_v_b_root = (victim_block_root*)victim_block_list;
+	return count;
+}
 
-	for(i=0;i<VICTIM_TABLE_ENTRY_NB;i++){
+int BM_GARBAGE_COLLECTION(int32_t victim_pbn)
+{
+#ifdef FTL_DEBUG
+	printf("[%s] Start\n", __FUNCTION__);
+#endif
+	int32_t new_pbn;
+	int32_t v_pbn;
+	int valid_page_nb;
+	int copy_page_nb=0;
+	block_state_entry* temp_b_s_entry = GET_BLOCK_STATE_ENTRY(victim_pbn);
 
-		if(curr_v_b_root->victim_block_nb != 0){
-
-			entry_nb = curr_v_b_root->victim_block_nb;
-			curr_v_b_entry = curr_v_b_root->head;
-			if(victim_block == NULL){
-				victim_block = curr_v_b_root->head;
-				b_s_entry = GET_BLOCK_STATE_ENTRY(victim_block->phy_flash_nb, victim_block->phy_block_nb);
-				curr_valid_page_nb = b_s_entry->valid_page_nb;
-			}
-		}
-		else{
-			entry_nb = 0;
-		}
-
-		for(j=0;j<entry_nb;j++){
-			b_s_entry = GET_BLOCK_STATE_ENTRY(curr_v_b_entry->phy_flash_nb, curr_v_b_entry->phy_block_nb);
-	
-			if(curr_valid_page_nb > b_s_entry->valid_page_nb){
-				victim_block = curr_v_b_entry;
-				curr_valid_page_nb = b_s_entry->valid_page_nb;
-			}
-
-			/* If the block is dead block, quit this loop */
-			if(curr_valid_page_nb == 0){
-				break;
-			}
-
-			curr_v_b_entry = curr_v_b_entry->next;
-		}
-		curr_v_b_root += 1;
+	/* If the victim block is not a replacement block */
+	if(temp_b_s_entry->rp_root_pbn == -1){
+		v_pbn = victim_pbn;
 	}
-#else
-	/* if GC_TREGGER_OVERALL is not defined, then */
-	curr_v_b_root = (victim_block_root*)victim_block_list + mapping_index;
+	/* If the victim block is a replacement block */
+	else{
+		v_pbn = temp_b_s_entry->rp_root_pbn;
+	}
 
-	if(curr_v_b_root->victim_block_nb != 0){
-		entry_nb = curr_v_b_root->victim_block_nb;
-		curr_v_b_entry = curr_v_b_root->head;
-		if(victim_block == NULL){
-			victim_block = curr_v_b_root->head;
-			b_s_entry = GET_BLOCK_STATE_ENTRY(curr_v_b_entry->phy_flash_nb, curr_v_b_entry->phy_block_nb);
-			curr_valid_page_nb = b_s_entry->valid_page_nb;
-		}
+	block_state_entry* rp_b_s_entry;
+	block_state_entry* root_b_s_entry = GET_BLOCK_STATE_ENTRY(v_pbn);
+	rp_block_entry* rp_b_entry = root_b_s_entry->rp_head;
+	int n_rp_blocks = root_b_s_entry->rp_count;
+
+	/* Get logical block number of the victim Block */
+	int32_t lbn = GET_INVERSE_MAPPING_INFO(v_pbn);
+	if(lbn == -1){
+		printf("ERROR[%s] It is a replacement block !\n", __FUNCTION__);
+		return -1;
+	}
+
+	/* If the victim block has no replacement block, */
+	if(n_rp_blocks == 0){
+
+		/* Get new empty block */
+		GET_NEW_BLOCK(VICTIM_OVERALL, EMPTY_TABLE_ENTRY_NB, &new_pbn);
+
+		/* Copy the valid pages in the victim block to the new empty block */
+		copy_page_nb = COPY_VALID_PAGES(v_pbn, new_pbn);
+		SSD_BLOCK_ERASE(CALC_FLASH(v_pbn), CALC_BLOCK(v_pbn));
+
+		/* Update block mapping information */
+		UPDATE_OLD_BLOCK_MAPPING(lbn);
+		UPDATE_NEW_BLOCK_MAPPING(lbn, new_pbn);
+
+		UPDATE_BLOCK_STATE(v_pbn, EMPTY_BLOCK);
+		INSERT_EMPTY_BLOCK(v_pbn);
 	}
 	else{
-		printf("ERROR[%s] There is no victim entry\n", __FUNCTION__);
-	}
-
-	for(i=0;i<entry_nb;i++){
-
-		b_s_entry = GET_BLOCK_STATE_ENTRY(curr_v_b_entry->phy_flash_nb, curr_v_b_entry->phy_block_nb);
-
-		if(curr_valid_page_nb > b_s_entry->valid_page_nb){
-			victim_block = curr_v_b_entry;
-			curr_valid_page_nb = b_s_entry->valid_page_nb;
+		/* Get the last replacement block */
+		if(n_rp_blocks == 1){
+			rp_b_entry = root_b_s_entry->rp_head;
+		}
+		else if(n_rp_blocks == 2){
+			rp_b_entry = root_b_s_entry->rp_head->next;
 		}
 
-		/* If the block is dead block, quit this loop */
+		/* Get the valid page number of last(tail) replacement block */
+		rp_b_s_entry = GET_BLOCK_STATE_ENTRY(rp_b_entry->pbn);
+		valid_page_nb = rp_b_s_entry->valid_page_nb;
+		int n_invalid_pages = COUNT_INVALID_PAGES(rp_b_s_entry);
+
+		/* If all pages in the block is valid, then */
+		if(valid_page_nb == PAGE_NB || n_invalid_pages == 0){
+
+			if(valid_page_nb != PAGE_NB){
+				int temp_copy_page_nb;
+				rp_block_entry* target_rp_b_entry;
+				rp_block_entry* first_rp_b_entry;
+			
+				if(n_rp_blocks == 1){
+					target_rp_b_entry = root_b_s_entry->rp_head;
+					copy_page_nb = COPY_VALID_PAGES(v_pbn, target_rp_b_entry->pbn);
+				}
+				else if(n_rp_blocks == 2){
+					target_rp_b_entry = root_b_s_entry->rp_head->next;
+					first_rp_b_entry = root_b_s_entry->rp_head;
+					temp_copy_page_nb = COPY_VALID_PAGES(v_pbn, target_rp_b_entry->pbn);
+					copy_page_nb = COPY_VALID_PAGES(first_rp_b_entry->pbn, target_rp_b_entry->pbn);
+					copy_page_nb += temp_copy_page_nb;
+				}
+			}
+
+			/* Mapping Information Update Start */
+                	new_pbn = rp_b_entry->pbn;
+			
+			/* Update the last rp entry of the last replacement block */
+			rp_b_s_entry->rp_root_pbn = -1;
+
+			/* free the last rp entry entry */
+			free(rp_b_entry);			
+
+			if(n_rp_blocks == 2){
+				/* Update the root entry of the first replacement block */
+				temp_b_s_entry = GET_BLOCK_STATE_ENTRY(root_b_s_entry->rp_head->pbn);
+				temp_b_s_entry->rp_root_pbn = -1;
+
+				/* Get rid of first rp block */
+				SSD_BLOCK_ERASE(CALC_FLASH(root_b_s_entry->rp_head->pbn), CALC_BLOCK(root_b_s_entry->rp_head->pbn));
+				UPDATE_BLOCK_STATE(root_b_s_entry->rp_head->pbn, EMPTY_BLOCK);
+				INSERT_EMPTY_BLOCK(root_b_s_entry->rp_head->pbn);
+
+				/* free first rp block entry */
+				free(root_b_s_entry->rp_head);			
+			}
+
+                        /* Update rp block table */
+                        root_b_s_entry->rp_count = 0;
+                        root_b_s_entry->rp_head = NULL;
+
+                        /* Get rid of original block */
+                        SSD_BLOCK_ERASE(CALC_FLASH(v_pbn), CALC_BLOCK(v_pbn));
+                        UPDATE_INVERSE_MAPPING(v_pbn, -1);
+			UPDATE_BLOCK_STATE(v_pbn, EMPTY_BLOCK);
+                        INSERT_EMPTY_BLOCK(v_pbn);
+
+                        /* Update mapping metadata */
+                        UPDATE_NEW_BLOCK_MAPPING(lbn, new_pbn);
+		}
+                else{
+			/* Get new empty block */
+                        GET_NEW_BLOCK(VICTIM_OVERALL, EMPTY_TABLE_ENTRY_NB, &new_pbn);
+
+			/* Copy the valid pages to new empty block */
+                        copy_page_nb = MERGE_RP_BLOCKS(v_pbn, new_pbn);
+
+			/* Update Block Mapping Information */
+                        UPDATE_OLD_BLOCK_MAPPING(lbn);
+                        UPDATE_NEW_BLOCK_MAPPING(lbn, new_pbn);
+                }
+	}
+
+#ifdef FTL_DEBUG
+	printf("[%s] End\n", __FUNCTION__);
+#endif
+	return copy_page_nb;
+}
+
+/* Greedy Garbage Collection Algorithm */
+int32_t SELECT_VICTIM_BLOCK(void)
+{
+	int i;
+	int n_pb_blocks;
+	int32_t lpn;
+	int32_t pbn;
+	int32_t curr_pbn = -1;
+	block_state_entry* curr_b_s_entry;
+	int curr_valid_page_nb = PAGE_NB;
+
+	for(i=0;i<BLOCK_MAPPING_ENTRY_NB;i++)
+	{
+		curr_b_s_entry = GET_BLOCK_STATE_ENTRY(i);
+		if(curr_b_s_entry->type == DATA_BLOCK ){
+
+			if(curr_valid_page_nb > curr_b_s_entry->valid_page_nb){
+				curr_valid_page_nb = curr_b_s_entry->valid_page_nb;
+				curr_pbn = i;
+			}
+		}
+
+		/* If the block is dead block, quit the loop */
 		if(curr_valid_page_nb == 0){
 			break;
 		}
-
-		curr_v_b_entry = curr_v_b_entry->next;
 	}
-#endif
+
 	if(curr_valid_page_nb == PAGE_NB){
-		fail_cnt++;
-	//	printf(" Fail Count : %d\n", fail_cnt);
-		return FAIL;
+		return -1;
 	}
 
-	*phy_flash_nb = victim_block->phy_flash_nb;
-	*phy_block_nb = victim_block->phy_block_nb;
-	EJECT_VICTIM_BLOCK(victim_block);
+	return curr_pbn;
 
-	return SUCCESS;
+}
+
+int COPY_VALID_PAGES(int32_t old_pbn, int32_t new_pbn)
+{
+	int i;
+	int copy_page_nb = 0;
+
+	unsigned int old_flash_nb = CALC_FLASH(old_pbn);
+	unsigned int old_block_nb = CALC_BLOCK(old_pbn);
+	unsigned int new_flash_nb = CALC_FLASH(new_pbn);
+	unsigned int new_block_nb = CALC_BLOCK(new_pbn);;
+
+	block_state_entry* old_b_s_entry = GET_BLOCK_STATE_ENTRY(old_pbn);
+	char* valid_array = old_b_s_entry->valid_array;
+
+	for(i=0;i<PAGE_NB;i++){
+		if(valid_array[i] == 'V'){
+			SSD_PAGE_READ(old_flash_nb, old_block_nb, i, -1, GC_READ, -1);
+			SSD_PAGE_WRITE(new_flash_nb, new_block_nb, i, -1, GC_WRITE, -1);
+
+			UPDATE_BLOCK_STATE_ENTRY(new_pbn, i, VALID);
+			UPDATE_BLOCK_STATE_ENTRY(old_pbn, i, INVALID);
+			copy_page_nb++;
+		}
+	}
+
+	return copy_page_nb;
+}
+
+
+
+int MERGE_RP_BLOCKS(int32_t old_pbn, int32_t new_pbn)
+{
+ 	int i;
+	int32_t rp_pbn;
+	block_state_entry* b_s_entry;
+	int copy_page_nb = 0;
+	int total_copy_page_nb = 0;
+
+	block_state_entry* temp_b_s_entry;
+	block_state_entry* root_b_s_entry = GET_BLOCK_STATE_ENTRY(old_pbn);
+	rp_block_entry* rp_b_entry = root_b_s_entry->rp_head;
+	int n_rp_blocks = root_b_s_entry->rp_count;
+
+	/* Copy The Valid pages of the replacement blocks to new block */
+	for(i=0;i<n_rp_blocks;i++){
+		if(rp_b_entry==NULL){
+			printf("ERROR[%s] rp_b_entry has NULL pointer. \n", __FUNCTION__);
+			return -1;
+		}	
+
+		rp_pbn = rp_b_entry->pbn;
+
+		copy_page_nb = COPY_VALID_PAGES(rp_pbn, new_pbn);
+		total_copy_page_nb += copy_page_nb;
+
+		/* Update the rp block table */
+		temp_b_s_entry = GET_BLOCK_STATE_ENTRY(rp_pbn);
+		temp_b_s_entry->rp_root_pbn = -1;
+
+		/* Update Metadata */
+		SSD_BLOCK_ERASE(CALC_FLASH(rp_pbn), CALC_BLOCK(rp_pbn));
+		temp_b_s_entry->erase_count++;
+		UPDATE_BLOCK_STATE(rp_pbn, EMPTY_BLOCK);
+		INSERT_EMPTY_BLOCK(rp_pbn);
+
+		rp_b_entry = rp_b_entry->next;	
+	}
+
+	/* Updat replacement block table */
+	if(n_rp_blocks == 1){
+		free(root_b_s_entry->rp_head);
+	}
+	if(n_rp_blocks == 2){
+		free(root_b_s_entry->rp_head->next);
+		free(root_b_s_entry->rp_head);
+	}
+	root_b_s_entry->rp_head = NULL;
+	root_b_s_entry->rp_count = 0;
+
+	/* Copy The Valid pages of the original block to new block */
+	copy_page_nb = COPY_VALID_PAGES(old_pbn, new_pbn);
+	SSD_BLOCK_ERASE(CALC_FLASH(old_pbn), CALC_BLOCK(old_pbn));
+	total_copy_page_nb += copy_page_nb;
+
+	/* Update the original block Metadata */
+	root_b_s_entry->erase_count++;
+	UPDATE_BLOCK_STATE(old_pbn, EMPTY_BLOCK);
+	INSERT_EMPTY_BLOCK(old_pbn);
+
+	return total_copy_page_nb;
 }
