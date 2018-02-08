@@ -1,0 +1,253 @@
+BLOCK_ERASE	ssd_io_manager.c	/^int BLOCK_ERASE(unsigned int flash_nb, unsigned in/
+BLOCK_ERASE_DELAY	ftl_nfig_mananager.c	32
+BLOCK_MAPPING_ENTRY_NB	ftl_nfig_mananager.c	16
+BLOCK_NB	ftl_nfig_mananager.c	9
+CELL_PROGRAM_DELAY	ftl_nfig_mananager.c	29
+CELL_READ	ssd_io_manager.c	/^int CELL_READ(unsigned int flash_nb, unsigned int /
+CELL_READ_DELAY	ftl_nfig_mananager.c	31
+CELL_WRITE	ssd_io_manager.c	/^int CELL_WRITE(unsigned int flash_nb,unsigned int /
+CHANNEL_ACCESS_R	ssd_io_manager.c	/^int CHANNEL_ACCESS_R(int channel){$/
+CHANNEL_ACCESS_W	ssd_io_manager.c	/^int CHANNEL_ACCESS_W(int channel){$/
+CHANNEL_CHECK	ssd_io_manager.c	/^int CHANNEL_CHECK(int channel){$/
+CHANNEL_IS_EMPTY	common.h	20
+CHANNEL_IS_ERASE	common.h	23
+CHANNEL_IS_READ	common.h	22
+CHANNEL_IS_WRITE	common.h	21
+CHANNEL_NB	ftl_nfig_mananager.c	45
+CHANNEL_SWITCH_DELAY_R	ftl_nfig_mananager.c	34
+CHANNEL_SWITCH_DELAY_W	ftl_nfig_mananager.c	33
+CHECK_CACHE_ENTRY	ftl_cache.c	/^int CHECK_CACHE_ENTRY(int64_t lba){$/
+DATA_BLOCK	common.h	18
+DATA_BLOCK_NB	ftl_nfig_mananager.c	21
+DSM_TRIM_ENABLE	ftl_nfig_mananager.c	36
+DeleteQueue	ftl_cache.c	/^void DeleteQueue(int bn)$/
+EACH_EMPTY_BLOCK_ENTRY_NB	ftl_nfig_mananager.c	17
+EMPTY_BLOCK	common.h	17
+EMPTY_BLOCK_TABLE_NB	ftl_nfig_mananager.c	19
+ERASE	common.h	32
+EXIST_IN_TRIM_LIST	ssd_im_manageger.c	/^int EXIST_IN_TRIM_LIST(int64_t sector_nb){ 	$/
+FAIL	common.h	12
+FLASH_NB	ftl_nfig_mananager.c	8
+FTL_BUFFER	ftl_buffer.c	/^int FTL_BUFFER(int type, int64_t sector_nb, unsign/
+FTL_BUFFER_DEBUG	common.h	58
+FTL_BUFFER_FLUSH	ftl_buffer.c	/^void FTL_BUFFER_FLUSH(void){$/
+FTL_BUFFER_SIZE	ftl_nfig_mananager.c	42
+FTL_DEBUG	common.h	35
+FTL_INIT	ftl.c	/^void FTL_INIT(void)$/
+FTL_MAP_CACHE	common.h	55
+FTL_MAP_CACHE_DEBUG	common.h	56
+FTL_READ	ftl.c	/^void FTL_READ(int64_t sector_nb, unsigned int leng/
+FTL_TERM	ftl.c	/^void FTL_TERM(void)$/
+FTL_WRITE	ftl.c	/^void FTL_WRITE(int64_t sector_nb, unsigned int len/
+FreeQueue	ftl_cache.c	/^void FreeQueue(void)$/
+GARBAGE_COLLECTION	ftl_gc_manager.c	/^int GARBAGE_COLLECTION(void)$/
+GC_ON	common.h	39
+GC_THRESHOLD	ftl_nfig_mananager.c	39
+GC_THRESHOLD_BLOCK_NB	ftl_nfig_mananager.c	40
+GET_EMPTY_BLOCK	ftl_verse_mapapping_manager.c	/^empty_block_entry* GET_EMPTY_BLOCK(void)$/
+GET_FILE_NAME	ftl_nfig_mananager.c	/^char* GET_FILE_NAME(void){$/
+GET_INVERSE_BLOCK_MAPPING_ENTRY	ftl_verse_mapapping_manager.c	/^inverse_block_mapping_entry* GET_INVERSE_BLOCK_MAP/
+GET_INVERSE_PAGE_MAPPING_ENTRY	ftl_verse_mapapping_manager.c	/^inverse_page_mapping_entry* GET_INVERSE_PAGE_MAPPI/
+GET_MAPPING_ENTRY	ftl_pping_mananager.c	/^mapping_table_entry* GET_MAPPING_ENTRY(int64_t lba/
+GET_MAPPING_INFO	ftl_pping_mananager.c	/^int GET_MAPPING_INFO(int64_t lba, unsigned int* ph/
+GET_NEW_PAGE	ftl_pping_mananager.c	/^int GET_NEW_PAGE(unsigned int* new_phy_flash_nb, u/
+INIT_CACHE_TABLE	ftl_cache.c	/^void INIT_CACHE_TABLE(){$/
+INIT_CACHE_TABLE	ftl_cache.o	/^	[CACHE] INIT_CACHE_TABLE() start$/
+INIT_EMPTY_BLOCK_LIST	ftl_verse_mapapping_manager.c	/^void INIT_EMPTY_BLOCK_LIST(void)$/
+INIT_INVERSE_BLOCK_MAPPING	ftl_verse_mapapping_manager.c	/^void INIT_INVERSE_BLOCK_MAPPING(void)$/
+INIT_INVERSE_PAGE_MAPPING	ftl_verse_mapapping_manager.c	/^void INIT_INVERSE_PAGE_MAPPING(void)$/
+INIT_LOG_MANAGER	ssd_log_manager.c	/^void INIT_LOG_MANAGER(void)$/
+INIT_MAPPING_TABLE	ftl_pping_mananager.c	/^void INIT_MAPPING_TABLE(void)$/
+INIT_SSD_CONFIG	ftl_nfig_mananager.c	/^void INIT_SSD_CONFIG(void)$/
+INIT_TRIM	ssd_im_manageger.c	/^void INIT_TRIM(void)$/
+INIT_VALID_ARRAY	ftl_verse_mapapping_manager.c	/^void INIT_VALID_ARRAY(void)$/
+INIT_VICTIM_BLOCK_LIST	ftl_verse_mapapping_manager.c	/^void INIT_VICTIM_BLOCK_LIST(void){$/
+INSERT_EMPTY_BLOCK	ftl_verse_mapapping_manager.c	/^int INSERT_EMPTY_BLOCK(unsigned int phy_flash_nb, /
+INSERT_TRIM_SECTORS	ssd_im_manageger.c	/^void INSERT_TRIM_SECTORS(sector_entry* pSE) $/
+INVALID	common.h	15
+IO_PARALLELISM	ftl_nfig_mananager.c	37
+InsertNode	ftl_buffer.c	/^void InsertNode(int type, int64_t sector_nb, unsig/
+InsertQueue	ftl_cache.c	/^void InsertQueue( int bn )$/
+LOG_BLOCK_NB	ftl_nfig_mananager.c	24
+LOG_RAND_BLOCK_NB	ftl_nfig_mananager.c	22
+LOG_SEQ_BLOCK_NB	ftl_nfig_mananager.c	23
+MAPPING_CACHE_SIZE	ftl_nfig_mananager.c	47
+MNT_DEBUG	common.h	37
+MONITOR_ON	common.h	38
+Mmain	main.c	/^void main(void){$/
+OBJECTS	Makefile	1
+PAGES_PER_FLASH	ftl_nfig_mananager.c	12
+PAGE_MAPPING_ENTRY_NB	ftl_nfig_mananager.c	15
+PAGE_NB	ftl_nfig_mananager.c	6
+PAGE_SIZE	ftl_nfig_mananager.c	5
+PLANES_PER_FLASH	ftl_nfig_mananager.c	11
+PRINT_VALID_ARRAY	ftl_verse_mapapping_manager.c	/^void PRINT_VALID_ARRAY(unsigned int phy_flash_nb, /
+PrintQueue	ftl_cache.c	/^void PrintQueue(void)$/
+READ	common.h	31
+REG_ACCESS	ssd_io_manager.c	/^int REG_ACCESS( int reg, int flag){$/
+REG_IS_EMPTY	common.h	25
+REG_IS_ERASE	common.h	28
+REG_IS_READ	common.h	27
+REG_IS_WRITE	common.h	26
+REG_READ_DELAY	ftl_nfig_mananager.c	30
+REG_WRITE_DELAY	ftl_nfig_mananager.c	28
+REMOVE_TRIM_SECTOR	ssd_im_manageger.c	/^int REMOVE_TRIM_SECTOR(int64_t sector_nb) $/
+SECTORS_PER_PAGE	ftl_nfig_mananager.c	26
+SECTOR_NB	ftl_nfig_mananager.c	14
+SECTOR_SIZE	ftl_nfig_mananager.c	7
+SPO_MONITOR	common.h	52
+SSD_BUFFER_SIZE	ftl_nfig_mananager.c	43
+SSD_CH_SWITCH_DELAY_R	common.h	45
+SSD_CH_SWITCH_DELAY_W	common.h	46
+SSD_EVALUATION	ssd_util.h	5
+SSD_IO_INIT	ssd_io_manager.c	/^int SSD_IO_INIT(void){$/
+SUCCESS	common.h	11
+SelectVictim	ftl_cache.c	/^int SelectVictim(void){$/
+TERM_CACHE_TABLE	ftl_cache.c	/^void TERM_CACHE_TABLE(){$/
+TERM_EMPTY_BLOCK_LIST	ftl_verse_mapapping_manager.c	/^void TERM_EMPTY_BLOCK_LIST(void)$/
+TERM_INVERSE_BLOCK_MAPPING	ftl_verse_mapapping_manager.c	/^void TERM_INVERSE_BLOCK_MAPPING(void)$/
+TERM_INVERSE_PAGE_MAPPING	ftl_verse_mapapping_manager.c	/^void TERM_INVERSE_PAGE_MAPPING(void)$/
+TERM_LOG_MANAGER	ssd_log_manager.c	/^void TERM_LOG_MANAGER(void)$/
+TERM_MAPPING_TABLE	ftl_pping_mananager.c	/^void TERM_MAPPING_TABLE(void)$/
+TERM_TRIM	ssd_im_manageger.c	/^void TERM_TRIM(void)$/
+TERM_VALID_ARRAY	ftl_verse_mapapping_manager.c	/^void TERM_VALID_ARRAY(void)$/
+TERM_VICTIM_BLOCK_LIST	ftl_verse_mapapping_manager.c	/^void TERM_VICTIM_BLOCK_LIST(void){$/
+THREAD_CLIENT	ssd_log_manager.c	/^void THREAD_CLIENT(void* arg)$/
+THREAD_SERVER	ssd_log_manager.c	/^void THREAD_SERVER(void* arg)$/
+UPDATE_INVERSE_BLOCK_MAPPING	ftl_verse_mapapping_manager.c	/^int UPDATE_INVERSE_BLOCK_MAPPING(unsigned int phy_/
+UPDATE_INVERSE_BLOCK_VALIDITY	ftl_verse_mapapping_manager.c	/^int UPDATE_INVERSE_BLOCK_VALIDITY(unsigned int phy/
+UPDATE_INVERSE_PAGE_MAPPING	ftl_verse_mapapping_manager.c	/^int UPDATE_INVERSE_PAGE_MAPPING(unsigned int phy_f/
+UPDATE_NEW_PAGE_MAPPING	ftl_pping_mananager.c	/^int UPDATE_NEW_PAGE_MAPPING(int64_t lba, unsigned /
+UPDATE_OLD_PAGE_MAPPING	ftl_pping_mananager.c	/^int UPDATE_OLD_PAGE_MAPPING(int64_t lba)$/
+VALID	common.h	14
+WRITE	common.h	30
+WRITE_LOG	ssd_log_manager.c	/^void WRITE_LOG(char* szLog)$/
+_COMMON_H_	common.h	2
+_CONFIG_MANAGER_H_	ftl_nfig_mananager.h	2
+_FTL_BUFFER_H_	ftl_buffer.h	2
+_FTL_CACHE_H	ftl_cache.h	2
+_FTL_H_	ftl.h	2
+_GC_MANAGER_H_	ftl_gc_manager.h	2
+_INVERSE_MAPPING_MANAGER_H_	ftl_verse_mapapping_manager.h	2
+_LOG_MANAGER_H_	ssd_log_manager.h	2
+_MAPPING_MANAGER_H_	ftl_pping_mananager.h	2
+_SSD_IO_MANAGER_H	ssd_io_manager.h	2
+_SSD_UTIL_H_	ssd_util.h	2
+_TRIM_MANAGER_H_	ssd_im_manageger.h	2
+access_time_ch	ssd_io_manager.c	8
+access_time_reg	ssd_io_manager.c	10
+access_type_ch	ssd_io_manager.c	9
+access_type_reg	ssd_io_manager.c	11
+add_sector_list	ssd_im_manageger.c	/^void add_sector_list(sector_entry* pList, sector_e/
+block_nb	ftl_cache.h	15
+block_table_start	ftl_pping_mananager.c	7
+bool	ftl_cache.h	4
+buffer_unit_size	ftl_buffer.c	12
+cache_queue	ftl_cache.h	14
+cache_queue	ftl_cache.h	17
+cache_state	ftl_cache.h	10
+cache_table_info	ftl_cache.h	9
+cache_table_info	ftl_cache.h	12
+changed_entry_nb	ftl_cache.h	11
+clientSock	ssd_log_manager.c	14
+ct_info	ftl_cache.c	10
+cur_cache_entry_nb	ftl_cache.c	8
+curr_phy_page_nb	ftl_verse_mapapping_manager.h	34
+empty_block_entry	ftl_verse_mapapping_manager.h	30
+empty_block_entry	ftl_verse_mapapping_manager.h	37
+empty_block_nb	ftl_verse_mapapping_manager.h	27
+empty_block_root	ftl_verse_mapapping_manager.h	23
+empty_block_root	ftl_verse_mapapping_manager.h	28
+empty_block_table_index	ftl_verse_mapapping_manager.c	10
+empty_block_table_start	ftl_verse_mapapping_manager.c	7
+false	ftl_cache.h	4
+fp_dbg1_r	ftl.c	12
+fp_dbg1_w	ftl.c	13
+free_trimmed_sector_entry	ssd_im_manageger.c	/^void free_trimmed_sector_entry(trimmed_sector_entr/
+ftl_buff	ftl_buffer.h	13
+gFile_Name	ftl_nfig_mananager.c	49
+g_TSEI	ssd_im_manageger.c	42
+g_ftl_buff_limit	ftl_buffer.c	11
+g_init	ftl.c	18
+g_init_log_server	ssd_log_manager.c	19
+g_pHead	ftl_buffer.c	9
+g_pTail	ftl_buffer.c	10
+g_pcHead	ftl_cache.c	13
+g_pcTail	ftl_cache.c	14
+g_server_create	ssd_log_manager.c	18
+get_trimmed_sector_entry	ssd_im_manageger.c	/^trimmed_sector_entry* get_trimmed_sector_entry(sec/
+get_trimmed_sector_entry_index	ssd_im_manageger.c	/^trimmed_sector_entry_index* get_trimmed_sector_ent/
+get_usec	ssd_io_manager.c	/^int64_t get_usec(void)$/
+index	ssd_im_manageger.c	34
+inverse_block_mapping_entry	ftl_verse_mapapping_manager.h	15
+inverse_block_mapping_entry	ftl_verse_mapapping_manager.h	21
+inverse_block_mapping_table_start	ftl_verse_mapapping_manager.c	6
+inverse_page_mapping_entry	ftl_verse_mapapping_manager.h	7
+inverse_page_mapping_entry	ftl_verse_mapapping_manager.h	13
+inverse_page_mapping_table_start	ftl_verse_mapapping_manager.c	5
+length	ftl_buffer.h	11
+length	ssd_im_manageger.c	13
+length	ssd_im_manageger.c	25
+length	ssd_im_manageger.h	9
+log_block_nb	ftl_verse_mapapping_manager.h	10
+log_flash_nb	ftl_verse_mapapping_manager.h	9
+log_page_nb	ftl_verse_mapapping_manager.h	11
+mapping_table_entry	ftl_pping_mananager.h	11
+mapping_table_entry	ftl_pping_mananager.h	16
+mapping_table_start	ftl_pping_mananager.c	6
+max_cache_entry_nb	ftl_cache.c	7
+new_sector_entry	ssd_im_manageger.c	/^sector_entry* new_sector_entry(void)$/
+next	ftl_buffer.h	12
+next	ftl_cache.h	16
+next	ftl_verse_mapapping_manager.h	25
+next	ftl_verse_mapapping_manager.h	35
+next	ssd_im_manageger.c	14
+next	ssd_im_manageger.c	26
+next	ssd_im_manageger.c	37
+next	ssd_im_manageger.h	12
+old_channel_nb	ssd_io_manager.c	13
+overlap_trimmed_sector	ssd_im_manageger.c	/^int overlap_trimmed_sector(trimmed_sector_entry* p/
+pTSE	ssd_im_manageger.c	35
+pTSE_tail	ssd_im_manageger.c	36
+phy_block_nb	ftl_verse_mapapping_manager.h	33
+phy_block_nb	ftl_pping_mananager.h	14
+phy_flash_nb	ftl_verse_mapapping_manager.h	32
+phy_flash_nb	ftl_pping_mananager.h	13
+phy_page_nb	ftl_pping_mananager.h	15
+prev	ssd_im_manageger.c	15
+prev	ssd_im_manageger.c	27
+prev	ssd_im_manageger.c	38
+prev	ssd_im_manageger.h	11
+release_sector_list	ssd_im_manageger.c	/^void release_sector_list(sector_entry* pSE)$/
+remove_sector_entry	ssd_im_manageger.c	/^void remove_sector_entry(sector_entry* pSE)$/
+sector_entry	ssd_im_manageger.h	6
+sector_entry	ssd_im_manageger.h	13
+sector_nb	ftl_buffer.h	10
+sector_nb	ssd_im_manageger.c	12
+sector_nb	ssd_im_manageger.c	24
+sector_nb	ssd_im_manageger.h	8
+servSock	ssd_log_manager.c	13
+st_ftl_buff	ftl_buffer.h	8
+tail	ftl_verse_mapapping_manager.h	26
+thread_ID	ssd_log_manager.c	16
+time_min	ssd_im_manageger.c	11
+time_sec	ssd_im_manageger.c	10
+time_usec	ssd_im_manageger.c	9
+total_empty_block_nb	ftl_verse_mapapping_manager.c	9
+trim_list	ssd_im_manageger.c	18
+trim_list_tail	ssd_im_manageger.c	19
+trim_test	ssd_im_manageger.c	7
+trim_test	ssd_im_manageger.c	16
+trimmed_sector_entry	ssd_im_manageger.c	22
+trimmed_sector_entry	ssd_im_manageger.c	29
+trimmed_sector_entry_index	ssd_im_manageger.c	32
+trimmed_sector_entry_index	ssd_im_manageger.c	39
+true	ftl_cache.h	4
+type	ftl_buffer.h	9
+type	ftl_verse_mapapping_manager.h	18
+valid	ftl_verse_mapapping_manager.h	12
+valid_array	ftl_verse_mapapping_manager.h	19
+valid_page_nb	ftl_verse_mapapping_manager.h	17
+victim_block_list_head	ftl_verse_mapapping_manager.c	12
+victim_block_list_tail	ftl_verse_mapapping_manager.c	13
+victim_block_nb	ftl_verse_mapapping_manager.c	14
